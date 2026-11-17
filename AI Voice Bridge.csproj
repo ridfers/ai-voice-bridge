@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net10.0-windows</TargetFramework><UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms><!-- DPI belongs to WPF manifest; WinForms is used only for NotifyIcon. --><NoWarn>$(NoWarn);WFO0003</NoWarn><ImplicitUsings>disable</ImplicitUsings><Nullable>enable</Nullable><Version>0.2.0</Version><Authors>ridfers</Authors><Company>ridfers</Company><Product>AI Voice Bridge</Product><Description>Windows audio bridge by ridfers</Description><Copyright>Copyright © ridfers</Copyright><ApplicationIcon>Assets/VoiceBridge.ico</ApplicationIcon><ApplicationManifest>app.manifest</ApplicationManifest></PropertyGroup><ItemGroup><Compile Remove="Tests/**/*.cs"/><EmbeddedResource Remove="Tests/**"/><None Remove="Tests/**"/><Page Remove="Tests/**"/></ItemGroup><ItemGroup><Resource Include="Assets/VoiceBridge.ico"/><EmbeddedResource Include="SoundCheck.html" LogicalName="SoundCheck.html"/><PackageReference Include="NAudio.Wasapi" Version="2.2.1"/></ItemGroup></Project>
+
+
+
+
+
+

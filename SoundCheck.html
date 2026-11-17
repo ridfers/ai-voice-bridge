@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проверка звука · AI Voice Bridge</title>
+<style>
+:root{color-scheme:dark;font-family:"Segoe UI",sans-serif;background:#19191f;color:#ede9f5}
+*{box-sizing:border-box} body{margin:0} main{max-width:740px;margin:auto;padding:clamp(24px,5vw,54px) 22px}
+h1{font-size:clamp(28px,5vw,42px);margin:0}h2{font-size:20px;margin:0 0 8px}
+p{line-height:1.55;color:#c3bccf}section{background:#24232e;border:1px solid #3e364b;border-radius:12px;padding:20px;margin-top:16px}
+small{display:block;color:#c3bccf;overflow-wrap:anywhere}.result{display:flex;justify-content:space-between;gap:16px;margin:15px 0 8px}
+strong{color:#c8afe9} [data-heard="true"] strong{color:#8bd5a8}
+progress{display:block;width:100%;height:8px;border:0;border-radius:6px;overflow:hidden;background:#423a50;accent-color:#8bd5a8}
+progress::-webkit-progress-bar{background:#423a50}progress::-webkit-progress-value{background:#8bd5a8}progress::-moz-progress-bar{background:#8bd5a8}
+button{color:#f5effc;background:#473b5d;border:1px solid #766491;border-radius:7px;padding:8px 13px;font:inherit;cursor:pointer;margin-top:14px}
+#connection{min-height:1.6em;color:#ef9f9f}.note{font-size:13px}
+</style>
+</head>
+<body><main>
+<h1>Проверка звука</h1>
+<p>AI Voice Bridge · уровни виртуальных микрофонов</p>
+<section id="input">
+<h2>Игра → вход ChatGPT</h2>
+<small class="device">Подключение…</small>
+<p>Запусти мост и включи передачу, пока в игре есть звук. В Firefox у ChatGPT должен быть выбран виртуальный микрофон, указанный ниже.</p>
+<div class="result"><strong role="status">Ожидание сигнала</strong><span class="level">—</span></div>
+<progress max="100" value="0" aria-label="Звук на входе ChatGPT"></progress>
+<button type="button">Сбросить результат</button>
+</section>
+<section id="game">
+<h2>Голос ИИ → микрофон игры</h2>
+<small class="device">Подключение…</small>
+<p>Поставь «Мой голос в игре» в ВЫКЛ, чтобы твой микрофон не влиял на результат. Пока ChatGPT отвечает, проверь сигнал ниже. Этот виртуальный микрофон должен быть выбран в игре.</p>
+<div class="result"><strong role="status">Ожидание сигнала</strong><span class="level">—</span></div>
+<progress max="100" value="0" aria-label="Звук на виртуальном микрофоне игры"></progress>
+<button type="button">Сбросить результат</button>
+</section>
+<p class="note">«Сигнал обнаружен» подтверждает звук на устройстве Windows. Сам ответ ChatGPT подтверждает приём звука браузером. Уровень в игровом микрофоне можно проверить без отправки звука в голосовой чат игры.</p>
+<p id="connection" role="status"></p>
+</main>
+<script>
+const panels = ['input','game'].map(key => {
+  const el = document.getElementById(key);
+  const panel = {key, el, heard:false};
+  el.querySelector('button').onclick = () => {panel.heard = false; render(panel, panel.data);};
+  return panel;
+});
+function render(panel, data) {
+  panel.data = data;
+  const {el} = panel;
+  const error = data?.error;
+  const level = error ? 0 : (data?.level ?? 0);
+  if (level >= 0.003) panel.heard = true;
+  el.dataset.heard = String(panel.heard && !error);
+  el.querySelector('.device').textContent = data?.device ?? 'Виртуальный микрофон';
+  el.querySelector('progress').value = level * 100;
+  el.querySelector('.level').textContent = data && !error ? Math.round(level * 100) + '%' : '—';
+  el.querySelector('strong').textContent = error || (panel.heard ? 'Сигнал обнаружен' : 'Ожидание сигнала');
+}
+async function poll() {
+  const connection = document.getElementById('connection');
+  try {
+    const response = await fetch('levels',{cache:'no-store',signal:AbortSignal.timeout(3500)});
+    if (!response.ok) throw new Error();
+    const data = await response.json();
+    panels.forEach(panel => render(panel,data[panel.key]));
+    connection.textContent = '';
+  } catch {
+    panels.forEach(panel => render(panel,null));
+    connection.textContent = 'Связь с мостом потеряна. Открой проверку снова из приложения.';
+  } finally {setTimeout(poll,250);}
+}
+poll();
+</script>
+</body></html>
